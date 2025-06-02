@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 5
+names: ['ball', 'crossbar', 'line', 'person', 'post']
+
+roboflow:
+  workspace: goal-line-detection
+  project: gaol-line-detection
+  version: 4
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/goal-line-detection/gaol-line-detection/dataset/4
