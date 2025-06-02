@@ -1,1 +1,1 @@
-test set images reside here
+test set images are located here
