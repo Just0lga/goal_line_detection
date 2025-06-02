@@ -1,4 +1,3 @@
-Model Statistics
 # Goal Segmentation Training Experiment - exp3050ti2
 
 ## 📊 Experiment Overview
