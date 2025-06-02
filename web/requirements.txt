@@ -1,0 +1,24 @@
+# Core web framework
+Flask==2.3.3
+Werkzeug==2.3.7
+
+# Computer vision and image processing
+opencv-python-headless==4.8.1.78
+Pillow==10.0.1
+
+# Machine learning and numerical computing
+numpy==1.24.3
+torch==2.0.1
+ultralytics==8.0.190
+
+# Web file handling
+python-multipart==0.0.6
+
+# Optional: Detectron2 for advanced detection
+# Install separately based on your CUDA version:
+# 
+# For CUDA 11.8:
+# pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu118/torch2.0/index.html
+#
+# For CPU only:
+# pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cpu/torch2.0/index.html 

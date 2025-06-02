@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goal Line Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 50px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        .upload-area:hover {
+            border-color: #0d6efd;
+            background: linear-gradient(135deg, #e7f3ff 0%, #cce7ff 100%);
+        }
+        
+        .upload-area.dragover {
+            border-color: #0d6efd;
+            background: linear-gradient(135deg, #e7f3ff 0%, #cce7ff 100%);
+            transform: scale(1.02);
+        }
+        
+        .progress-container {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .results-container {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .goal-event {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .goal-event:hover {
+            background: #e9ecef;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            height: 100%;
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-processing {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .video-preview {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .detector-selection {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .detector-card {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .detector-card:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+        
+        .detector-card.selected {
+            border-color: #0d6efd;
+            background-color: #e7f3ff;
+        }
+        
+        .detector-status {
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+        
+        .status-available {
+            color: #198754;
+        }
+        
+        .status-unavailable {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h1 class="display-4 fw-bold mb-4">
+                        <i class="fas fa-futbol me-3"></i>
+                        Goal Line Detection
+                    </h1>
+                    <p class="lead mb-4">
+                        Upload your football/soccer videos and our AI will automatically detect when the ball crosses the goal line, identifying potential goal events with frame-level precision.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Features Section -->
+        <div class="row mb-5">
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <i class="fas fa-upload feature-icon"></i>
+                    <h4>Easy Upload</h4>
+                    <p>Simply drag and drop your video file or click to browse. Supports most common video formats.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <i class="fas fa-eye feature-icon"></i>
+                    <h4>AI Detection</h4>
+                    <p>Advanced computer vision algorithms detect the ball and goal line with high accuracy using YOLO and Detectron2 models.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <i class="fas fa-download feature-icon"></i>
+                    <h4>Annotated Results</h4>
+                    <p>Download the processed video with annotations showing detected goals and frame-by-frame analysis.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow-lg border-0">
+                    <div class="card-body p-4">
+                        <h3 class="card-title text-center mb-4">
+                            <i class="fas fa-cloud-upload-alt me-2"></i>
+                            Upload Your Video
+                        </h3>
+                        
+                        <!-- Detector Selection -->
+                        <div class="detector-selection">
+                            <h5 class="mb-3">
+                                <i class="fas fa-cogs me-2"></i>
+                                Choose AI Detector
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="detector-card" data-detector="yolo">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    <i class="fas fa-rocket me-2"></i>
+                                                    YOLO (Fast)
+                                                </h6>
+                                                <p class="mb-1 text-muted small">Quick processing with good accuracy</p>
+                                                <div class="detector-status">
+                                                    <i class="fas fa-circle status-available" id="yolo-status"></i>
+                                                    <span id="yolo-status-text">Available</span>
+                                                </div>
+                                            </div>
+                                            <input type="radio" name="detector" value="yolo" checked>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="detector-card" data-detector="detectron2">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    <i class="fas fa-brain me-2"></i>
+                                                    Detectron2 (Accurate)
+                                                </h6>
+                                                <p class="mb-1 text-muted small">High precision instance segmentation</p>
+                                                <div class="detector-status">
+                                                    <i class="fas fa-circle status-unavailable" id="detectron2-status"></i>
+                                                    <span id="detectron2-status-text">Checking...</span>
+                                                </div>
+                                            </div>
+                                            <input type="radio" name="detector" value="detectron2">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Slow Motion Settings -->
+                        <div class="detector-selection">
+                            <h5 class="mb-3">
+                                <i class="fas fa-clock me-2"></i>
+                                Goal Slow Motion Effect
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="slowMoFactor" class="form-label">Slow Motion Factor</label>
+                                    <input type="range" class="form-range" id="slowMoFactor" name="slow_mo_factor" 
+                                           min="1" max="25" value="8" step="1">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">1x (Normal)</small>
+                                        <small class="text-muted">25x (Ultra Slow)</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Preview</label>
+                                    <div class="p-3 bg-light rounded">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-video me-2 text-primary"></i>
+                                            <span>Goals will play at </span>
+                                            <strong class="mx-1" id="slowMoDisplay">8x</strong>
+                                            <span> slower speed</span>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">
+                                            Higher values create more dramatic slow motion effects
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <div class="upload-area" id="uploadArea">
+                                <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-muted"></i>
+                                <h5>Drag and drop your video here</h5>
+                                <p class="text-muted">or click to browse files</p>
+                                <input type="file" id="videoInput" name="video" accept="video/*" style="display: none;">
+                                <small class="text-muted">Supported formats: MP4, AVI, MOV, MKV (Max: 100MB)</small>
+                            </div>
+                        </form>
+
+                        <!-- Progress Section -->
+                        <div class="progress-container" id="progressContainer">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                <span class="status-badge status-processing">Processing Video...</span>
+                                <span class="ms-auto" id="detectorUsed"></span>
+                            </div>
+                            <div class="progress mb-3">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" style="width: 0%" id="progressBar">
+                                </div>
+                            </div>
+                            <p class="text-muted mb-0" id="progressText">Initializing...</p>
+                        </div>
+
+                        <!-- Results Section -->
+                        <div class="results-container" id="resultsContainer">
+                            <hr class="my-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span class="status-badge status-success">Analysis Complete!</span>
+                                <span class="ms-auto badge bg-secondary" id="detectorUsedResult"></span>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-bullseye fa-2x text-primary mb-3"></i>
+                                            <h4 id="goalCount">0</h4>
+                                            <p class="mb-0">Goal Events Detected</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-clock fa-2x text-info mb-3"></i>
+                                            <h4 id="processingTime">-</h4>
+                                            <p class="mb-0">Processing Time</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-video fa-2x text-warning mb-3"></i>
+                                            <h4 id="frameCount">-</h4>
+                                            <p class="mb-0">Frames Processed</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <h5>Goal Events Timeline</h5>
+                                <div id="goalEvents"></div>
+                            </div>
+
+                            <div class="mt-4 text-center">
+                                <a href="#" id="downloadLink" class="btn btn-primary btn-lg me-3">
+                                    <i class="fas fa-download me-2"></i>
+                                    Download Annotated Video
+                                </a>
+                                <a href="#" id="downloadLinkDirect" class="btn btn-outline-primary btn-lg me-3" download style="display: none;">
+                                    <i class="fas fa-download me-2"></i>
+                                    Direct Download
+                                </a>
+                                <button class="btn btn-outline-secondary btn-lg" onclick="resetForm()">
+                                    <i class="fas fa-redo me-2"></i>
+                                    Process Another Video
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Preview Section -->
+        <div class="row mt-4" id="videoPreviewSection" style="display: none;">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <h5 class="card-title">Processed Video Preview</h5>
+                        <video id="videoPreview" class="video-preview" controls style="width: 100%;">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5 py-4 bg-light">
+        <div class="container text-center">
+            <p class="text-muted mb-0">
+                <i class="fas fa-robot me-2"></i>
+                Powered by AI Computer Vision | Goal Line Detection System
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let startTime;
+        
+        // Upload area interactions
+        const uploadArea = document.getElementById('uploadArea');
+        const videoInput = document.getElementById('videoInput');
+        const uploadForm = document.getElementById('uploadForm');
+        const progressContainer = document.getElementById('progressContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+
+        // Detector selection
+        const detectorCards = document.querySelectorAll('.detector-card');
+        const detectorRadios = document.querySelectorAll('input[name="detector"]');
+
+        // Initialize detector status
+        checkDetectorStatus();
+
+        // Slow motion factor slider
+        const slowMoSlider = document.getElementById('slowMoFactor');
+        const slowMoDisplay = document.getElementById('slowMoDisplay');
+
+        // Update slow motion display when slider changes
+        slowMoSlider.addEventListener('input', function() {
+            slowMoDisplay.textContent = this.value + 'x';
+        });
+
+        // Detector card interactions
+        detectorCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const detector = card.dataset.detector;
+                selectDetector(detector);
+            });
+        });
+
+        detectorRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                selectDetector(radio.value);
+            });
+        });
+
+        function selectDetector(detector) {
+            // Update radio buttons
+            document.querySelector(`input[value="${detector}"]`).checked = true;
+            
+            // Update card selection
+            detectorCards.forEach(card => {
+                card.classList.remove('selected');
+                if (card.dataset.detector === detector) {
+                    card.classList.add('selected');
+                }
+            });
+        }
+
+        async function checkDetectorStatus() {
+            try {
+                const response = await fetch('/api/detector-status');
+                const status = await response.json();
+                
+                // Update YOLO status
+                const yoloStatus = document.getElementById('yolo-status');
+                const yoloText = document.getElementById('yolo-status-text');
+                if (status.yolo_available) {
+                    yoloStatus.className = 'fas fa-circle status-available';
+                    yoloText.textContent = 'Available';
+                } else {
+                    yoloStatus.className = 'fas fa-circle status-unavailable';
+                    yoloText.textContent = 'Unavailable';
+                }
+                
+                // Update Detectron2 status
+                const detectron2Status = document.getElementById('detectron2-status');
+                const detectron2Text = document.getElementById('detectron2-status-text');
+                if (status.detectron2_available) {
+                    detectron2Status.className = 'fas fa-circle status-available';
+                    detectron2Text.textContent = status.detectron2_cuda ? 'Available (GPU)' : 'Available (CPU)';
+                } else {
+                    detectron2Status.className = 'fas fa-circle status-unavailable';
+                    detectron2Text.textContent = 'Unavailable';
+                    // Disable Detectron2 option
+                    document.querySelector('input[value="detectron2"]').disabled = true;
+                    document.querySelector('.detector-card[data-detector="detectron2"]').style.opacity = '0.6';
+                }
+                
+                // Select first available detector
+                if (status.detectron2_available) {
+                    selectDetector('detectron2');
+                } else if (status.yolo_available) {
+                    selectDetector('yolo');
+                }
+                
+            } catch (error) {
+                console.error('Error checking detector status:', error);
+            }
+        }
+
+        uploadArea.addEventListener('click', () => videoInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+        videoInput.addEventListener('change', handleFileSelect);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                videoInput.files = files;
+                handleFileSelect();
+            }
+        }
+
+        function handleFileSelect() {
+            const file = videoInput.files[0];
+            if (file) {
+                uploadVideo(file);
+            }
+        }
+
+        function uploadVideo(file) {
+            startTime = Date.now();
+            const formData = new FormData();
+            formData.append('video', file);
+            
+            // Add detector selection
+            const selectedDetector = document.querySelector('input[name="detector"]:checked').value;
+            formData.append('use_detectron2', selectedDetector === 'detectron2');
+            
+            // Add slow motion factor
+            const slowMoFactor = document.getElementById('slowMoFactor').value;
+            formData.append('slow_mo_factor', slowMoFactor);
+
+            // Show progress
+            progressContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            document.getElementById('videoPreviewSection').style.display = 'none';
+            
+            // Show selected detector
+            document.getElementById('detectorUsed').textContent = 
+                selectedDetector === 'detectron2' ? 'Using Detectron2' : 'Using YOLO';
+            
+            // Simulate progress for user feedback
+            simulateProgress();
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResults(data.results, data.processed_video_url);
+                } else {
+                    showError(data.error || 'An error occurred');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('Upload failed. Please try again.');
+            });
+        }
+
+        function simulateProgress() {
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            let progress = 0;
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 95) {
+                    progress = 95;
+                    clearInterval(interval);
+                }
+                
+                progressBar.style.width = progress + '%';
+                
+                if (progress < 30) {
+                    progressText.textContent = 'Uploading video...';
+                } else if (progress < 60) {
+                    progressText.textContent = 'Detecting ball and goal line...';
+                } else if (progress < 90) {
+                    progressText.textContent = 'Analyzing goal events...';
+                } else {
+                    progressText.textContent = 'Finalizing results...';
+                }
+            }, 500);
+        }
+
+        function showResults(results, videoUrl) {
+            const endTime = Date.now();
+            const processingTime = ((endTime - startTime) / 1000).toFixed(1);
+            
+            console.log('Showing results:', results);
+            console.log('Video URL:', videoUrl);
+            console.log('Goal events count:', results.goal_events ? results.goal_events.length : 'undefined');
+            
+            // Hide progress, show results
+            progressContainer.style.display = 'none';
+            resultsContainer.style.display = 'block';
+            
+            // Update result statistics
+            document.getElementById('goalCount').textContent = results.total_goals;
+            document.getElementById('processingTime').textContent = processingTime + 's';
+            document.getElementById('downloadLink').href = videoUrl;
+            document.getElementById('detectorUsedResult').textContent = results.detector_used || 'Unknown';
+            
+            // Set up direct download link as fallback
+            const directDownloadLink = document.getElementById('downloadLinkDirect');
+            if (videoUrl) {
+                directDownloadLink.href = videoUrl;
+                directDownloadLink.style.display = 'inline-block';
+            }
+            
+            // Show goal events
+            const goalEventsContainer = document.getElementById('goalEvents');
+            goalEventsContainer.innerHTML = '';
+            
+            if (!results.goal_events || results.goal_events.length === 0) {
+                console.log('No goal events found');
+                goalEventsContainer.innerHTML = '<p class="text-muted">No goal events detected in this video.</p>';
+            } else {
+                console.log('Processing', results.goal_events.length, 'goal events');
+                results.goal_events.forEach((event, index) => {
+                    console.log('Processing goal event', index + 1, ':', event);
+                    const eventDiv = document.createElement('div');
+                    eventDiv.className = 'goal-event';
+                    eventDiv.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Goal #${index + 1}</strong>
+                                <span class="text-muted ms-2">Frame ${event.frame}</span>
+                                ${event.confidence ? `<span class="badge bg-info ms-2">${(event.confidence * 100).toFixed(1)}%</span>` : ''}
+                            </div>
+                            <div>
+                                <span class="badge bg-primary">${event.timestamp.toFixed(2)}s</span>
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            Ball position: (${event.ball_position[0]}, ${event.ball_position[1]}) - 
+                            (${event.ball_position[2]}, ${event.ball_position[3]})
+                            ${event.distance_to_line ? ` | Distance to line: ${event.distance_to_line.toFixed(1)}px` : ''}
+                        </small>
+                    `;
+                    goalEventsContainer.appendChild(eventDiv);
+                });
+            }
+            
+            // Show video preview
+            if (videoUrl) {
+                console.log('Setting video preview source to:', videoUrl);
+                const videoElement = document.getElementById('videoPreview');
+                const videoSection = document.getElementById('videoPreviewSection');
+                
+                // Clear any previous error handlers
+                videoElement.onloadstart = null;
+                videoElement.onloadeddata = null;
+                videoElement.onerror = null;
+                
+                // Set up event handlers
+                videoElement.onloadstart = () => {
+                    console.log('Video loading started');
+                    videoSection.style.display = 'block';
+                };
+                
+                videoElement.onloadeddata = () => {
+                    console.log('Video data loaded successfully');
+                };
+                
+                videoElement.onerror = (e) => {
+                    console.error('Video loading error:', e);
+                    console.error('Video error details:', videoElement.error);
+                    
+                    // Add error message to the video section
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'alert alert-warning mt-3';
+                    errorDiv.innerHTML = `
+                        <strong>Video Preview Error:</strong> Could not load video preview. 
+                        <br>Please use the download link above to access the processed video.
+                        <br><small>Error: ${videoElement.error ? videoElement.error.message : 'Unknown error'}</small>
+                    `;
+                    
+                    // Replace video with error message
+                    const videoContainer = videoElement.parentElement;
+                    videoContainer.replaceChild(errorDiv, videoElement);
+                };
+                
+                // Attempt to load the video
+                videoElement.src = videoUrl;
+                videoElement.load(); // Force reload
+                
+            } else {
+                console.warn('No video URL provided');
+            }
+        }
+
+        function showError(message) {
+            progressContainer.style.display = 'none';
+            alert('Error: ' + message);
+        }
+
+        function resetForm() {
+            videoInput.value = '';
+            progressContainer.style.display = 'none';
+            resultsContainer.style.display = 'none';
+            document.getElementById('videoPreviewSection').style.display = 'none';
+            uploadArea.classList.remove('dragover');
+        }
+
+        // Initialize with first available detector selected
+        selectDetector('yolo');
+    </script>
+</body>
+</html> 
