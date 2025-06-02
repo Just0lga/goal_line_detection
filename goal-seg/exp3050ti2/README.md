@@ -45,19 +45,6 @@ This experiment trained a **YOLOv8m-seg** model for goal line detection and foot
 
 ### Performance Curves
 
-#### Box Detection Performance
-![Box Precision Curve](BoxP_curve.png)
-*Precision curve for bounding box detection across all classes*
-
-![Box Recall Curve](BoxR_curve.png)
-*Recall curve for bounding box detection across all classes*
-
-![Box F1 Curve](BoxF1_curve.png)
-*F1-score curve for bounding box detection showing optimal thresholds*
-
-![Box PR Curve](BoxPR_curve.png)
-*Precision-Recall curve for bounding box detection*
-
 #### Mask Segmentation Performance
 ![Mask Precision Curve](MaskP_curve.png)
 *Precision curve for instance segmentation masks*
